@@ -1,0 +1,29 @@
+---
+title: MULT (Multiply)
+section: 897
+---
+
+# MULT (Multiply)
+
+## Free-Form Syntax
+
+```
+(not allowed - use the * or *= operator)
+```
+
+## Code
+
+| Factor 1 | Factor 2 | Result Field | Indicators |
+|----------|----------|--------------|------------|
+| MULT (H) | Multiplicand | Multiplier | Product |
+| | | | + |
+| | | | - |
+| | | | Z |
+
+## Description
+
+If factor 1 is specified, factor 1 is multiplied by factor 2 and the product is placed in the result field. Be sure that the result field is large enough to hold it. Use the following rule to determine the maximum result field length: result field length equals the length of factor 1 plus the length of factor 2. If factor 1 is not specified, factor 2 is multiplied by the result field and the product is placed in the result field. Factor 1 and factor 2 must be numeric, and each can contain one of: an array, array element, field, figurative constant, literal, named constant, subfield, or table name. The result field must be numeric, but cannot be a named constant or literal. You can specify half adjust to have the result rounded.
+
+For further information on the MULT operation, see "Arithmetic Operations" on page 597.
+
+See Figure 172 on page 600 for examples of the MULT operation.

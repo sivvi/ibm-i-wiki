@@ -1,0 +1,33 @@
+---
+title: TAG (Tag)
+section: Operations, Expressions, and Functions
+---
+
+# TAG (Tag)
+
+Free-Form Syntax: (not allowed - use other operation codes, such as LEAVE, ITER, and RETURN)
+
+## Code
+
+| Factor 1 | Factor 2 | Result Field | Indicators |
+|----------|----------|--------------|------------|
+| TAG | | | |
+| | Label | | |
+
+## Description
+
+The declarative TAG operation names the label that identifies the destination of a "GOTO (Go To)" on page 848 or "CABxx (Compare and Branch)" on page 777 operation. It can be specified anywhere within calculations, including within total calculations.
+
+A GOTO within a subroutine in the cycle-main procedure can be issued to a TAG within the same subroutine, detail calculations or total calculations. A GOTO within a subroutine in a subprocedure can be issued to a TAG within the same subroutine, or within the body of the subprocedure.
+
+The control level entry (positions 7 and 8) can be blank or can contain an L1 through L9 indicator, the LR indicator, or the L0 entry to group the statement within the appropriate section of the program.
+
+Conditioning indicator entries (positions 9 through 11) are not allowed.
+
+Factor 1 must contain the name of the destination of a GOTO or CABxx operation. This name must be a unique symbolic name, which is specified in factor 2 of a GOTO operation or in the result field of a CABxx operation. The name can be used as a common point for multiple GOTO or CABxx operations.
+
+Branching to the TAG from a different part of the RPG IV logic cycle may result in an endless loop. For example, if a detail calculation line specifies a GOTO operation to a total calculation TAG operation, an endless loop may occur.
+
+See Figure 319 on page 849 for examples of the TAG operation.
+
+For more information, see "Branching Operations" on page 602 or "Declarative Operations" on page 614.
