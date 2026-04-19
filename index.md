@@ -2,7 +2,7 @@
 
 > Content catalog. Every wiki page listed under its type with a one-line summary.
 > Read this first to find relevant pages for any query.
-> Last updated: 2026-04-19 | Total pages: 26
+> Last updated: 2026-04-19 | Total pages: 29
 
 ## Entities
 
@@ -17,6 +17,9 @@
 - [[rpg-subprocedures]] — 子过程定义、原型、递归、服务程序（SRVPGM）
 - [[rpg-file-processing]] — 文件声明、CHAIN/READ/WRITE、INFDS 状态码
 - [[rpg-error-handling]] — 错误处理（状态码/MONITOR/INFSR/%STATUS/异常）
+- [[rpg-commitment-control]] — Commitment Control 事务控制：COMMIT/ROLBK、日志、LCKLVL 锁定级别 [[rpg-file-processing]]
+- [[rpg-xml-json]] — XML/JSON 处理：XML-INTO/XML-SAX/DATA-INTO/DATA-GEN [[rpg-iv-bifs]]
+- [[rpg-storage-heap]] — 动态存储管理：堆/%ALLOC/%REALLOC/链表/动态数组 [[rpg-iv-data-types]]
 - [[rpg-binding-strategies]] — 三种绑定策略（CRTBNDRPG/OPM/ILE静态绑定）、BNDDIR、Binder Language
 - [[service-programs]] — 服务程序（*SRVPGM）：签名机制、更新策略、BNDSRVPGM
 - [[rpg-parameter-passing]] — 参数传递：CONST/VALUE、*OMIT/*NOPASS、%PARMS、PI

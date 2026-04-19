@@ -35,6 +35,12 @@
 - Raw: raw/papers/dds-printer-files.txt (416KB, 160 pages, v7.2)
 - Created: concepts/dds-printer-files.md, concepts/dds-printer-file-keywords.md
 
+## [2026-04-19] update | Wiki expansion: 3 new concept pages from RPG Programmer's Guide
+- Created: concepts/rpg-commitment-control.md — Commitment Control (COMMIT/ROLBK/LCKLVL)
+- Created: concepts/rpg-xml-json.md — XML/JSON processing (XML-INTO/XML-SAX/DATA-INTO/DATA-GEN)
+- Created: concepts/rpg-storage-heap.md — Dynamic storage/heap management (%ALLOC/%REALLOC/linked list)
+- Total pages: 26 → 29
+
 ## [2026-04-19] ingest | IBM i 7.5 API Overview and Concepts (apipdf.pdf)
 - Source: https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/apipdf.pdf
 - Raw: raw/papers/apipdf.txt (1.5MB, 476 pages, v7.2)
