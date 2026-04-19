@@ -45,6 +45,6 @@
 - [[raw/papers/rpg-reference-7.5.txt]] — IBM ILE RPG Reference for IBM i 7.5（SC09-2508-12，1104 页）
 - [[raw/papers/rpg-programmers-guide-7.5.txt]] — IBM ILE RPG Programmer's Guide for IBM i 7.5（SC09-2507-12，562 页）
 - [[raw/papers/dds-physical-logical-7.5.txt]] — DDS for Physical and Logical Files（RZAKB，102 页，7.2版）
-- [[raw/papers/dds-display-files.txt]] — DDS for Display Files（RZAKC，288 页，7.2版，822K 字符）
-- [[raw/papers/dds-printer-files.txt]] — DDS for Printer Files（RZAKD，160 页，7.2版，416K 字符）
-- [[raw/papers/apipdf.txt]] — IBM i 7.5 API Overview and Concepts（apipdf.pdf，476 页，1.5M 字符，v7.2版）
+- [[raw/papers/dds-display-files.txt]] — DDS for Display Files（RZAKC，288 页，7.2版）
+- [[raw/papers/dds-printer-files.txt]] — DDS for Printer Files（RZAKD，160 页，7.2版）
+- [[raw/papers/apipdf.txt]] — IBM i 7.5 API Overview and Concepts（apipdf.pdf，476 页，v7.2版）

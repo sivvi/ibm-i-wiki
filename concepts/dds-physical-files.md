@@ -1,167 +1,499 @@
 ---
-title: DDS 物理文件
-created: 2026-04-19
-updated: 2026-04-19
-type: concept
-tags: [dds, ibm-i, database]
-sources: [raw/papers/dds-physical-logical-7.5.txt]
+title: DDS Keywords - Physical Files Only
+description: Data Description Specifications keywords specific to physical files in IBM i DDS
 ---
 
-# DDS 物理文件
+# DDS Keywords for Physical Files
 
-DDS（Data Description Specification）是 IBM i 数据库文件的核心定义语言。物理文件（`*FILE`）在 DB2 for i 中存储实际数据。
+Physical file DDS keywords that apply only to physical files (not logical files).
 
-## DDS 源码格式（位置 1-80）
+## Keyword Reference
 
-每行 DDS 源码分 6 个区域：
+| Keyword | Description |
+|---------|-------------|
+| ALWNULL | Allow null values for a field |
+| CCSID | Specify coded character set identifier |
+| CHECK | Validity checking for display file fields |
+| CHKMSGID | Specify error message for validity checking |
+| COLHDG | Column heading for field labeling |
+| DFT | Specify default value for a field |
+| DIGIT | Use digit portion only of key field |
+| EDTCDE | Edit code for field display formatting |
+| EDTWRD | Edit word for custom field display |
+| FLTPCN | Floating-point precision (single/double) |
+| REF | Reference file for field definitions |
+| REFACCPTH | Reference access path definition |
+| REFFLD | Reference a specific field |
+| REFSHIFT | Reference shift attribute |
+| SIGNED | Consider sign in key sequencing |
+| TRNTBL | Translation table for character fields |
+| UNSIGNED | Unsigned numeric key sequencing |
+| VARLEN | Variable-length field definition |
+| ZONE | Use zone portion only of key field |
 
-```
-位置   内容                    说明
-1-5    序号                    可选，用于文档
-6      A                       固定为 A（表示 DDS 表单行）
-7      *                      注释（可选）
-8-16   条件                   （留空）
-17     R/K                    R=记录格式名，K=键字段名，空=字段名
-18     （保留）               留空
-19-28  名称                   记录格式/字段/键名
-29     REF                     引用外部文件（可选）
-30-34  长度                   字段字节数（右对齐）
-35     数据类型               P/S/B/F/A/H/L/T/Z/5 等
-36-37  小数位                 数字字段的小数位数（0-63）
-38     用途                   I/O/B（输入/输出/两者）
-39-44  位置                   子字符串/拼接起始位置
-45-80  关键字                 字段级/文件级关键字
-```
+---
 
-## 数据类型（Position 35）
+## ALWNULL (Allow Null Value)
 
-| 代码 | 类型 | 说明 | 默认长度 |
-|------|------|------|---------|
-| `A` | Character | 字符 | 1-32766 |
-| `P` | Packed Decimal | 压缩十进制 | 1-63 位 |
-| `S` | Zoned Decimal | 区段十进制 | 1-63 位 |
-| `B` | Binary | 二进制 | 1-18 位 |
-| `F` | Floating-point | 浮点 | 单/双精度 |
-| `H` | Hexadecimal | 十六进制（不转码） | 1-32766 |
-| `L` | Date | 日期 | 系统决定 |
-| `T` | Time | 时间 | 8 字符 |
-| `Z` | Timestamp | 时间戳 | 26 字符 |
-| `5` | Binary Character | 二进制字符 | 1-32766 |
+**Applies to:** Field level
 
-> **注意**：`P`（压缩十进制）算术运算最快。留空位置 35 时：位置 36-37 有数字 → 默认 `P`，否则默认 `A`。
+**Description:** Defines a field to allow the null value.
 
-## 存储字节计算
-
-| 数据类型 | 存储字节 |
-|----------|---------|
-| Character / Hexadecimal / Binary Char | 等于长度 |
-| Zoned Decimal | 等于位数 |
-| Packed Decimal | `位数/2 + 1`（向上取整） |
-| Binary 1-4位 | 2 字节 |
-| Binary 5-9位 | 4 字节 |
-| Binary 10-18位 | 8 字节 |
-| Float (single) | 4 字节 |
-| Float (double) | 8 字节 |
-| Date | 6/8/10 字符（取决于 DATFMT） |
-| Time | 8 字符 |
-| Timestamp | 26 字符 |
-
-## 物理文件示例
-
+**Syntax:**
 ```dds
-*=========================================================================
-*  物理文件: ORDER  (订单主文件)
-*=========================================================================
-              R ORDFMT                     TEXT('订单记录格式')
-              ORDNBR      10A             TEXT('订单号')
-              CUSTID       7P 0           TEXT('客户编号')
-              ORDDATE      L              TEXT('订单日期')
-              ORDAMT      15P 2          TEXT('订单金额')
-              STATUS       2A             TEXT('状态')
-              DFT('A')                      STATUS 默认值
-              UNIQUE                           键值唯一
+A fieldname   nA   ALWNULL
 ```
 
-## 键字段（Key Fields）
+**Parameters:** None
 
-键字段决定记录的物理存储顺序：
+**Restrictions:**
+- Maximum field length is 32,765 bytes (32,739 if variable length)
+- When DATFMT(*JOB, *MDY, *DMY, *YMD, or *JUL) is specified with null value support, a valid date must be specified on DFT keyword
 
+**Example:**
 ```dds
-              R ORDFMT
-              K ORDNBR                       按订单号升序排列
-              K ORDDATE                      第二键，按日期
-              K CUSTID                       第三键，按客户
-              ORDNBR      10A
-              CUSTID       7P 0
-              ORDDATE      L
+00010A          R RECORD1
+00020A            FIELD1        75A         ALWNULL
+00030A            FIELD2       100A
+00040A            FIELD3          L         ALWNULL
+00050A                                      DATFMT(*MDY)
+00060A                                      DFT('12/25/93')
 ```
 
-**UNIQUE 关键字**：要求键值唯一（否则报错/覆盖）。
+---
 
-## 常用文件级关键字
+## CCSID (Coded Character Set Identifier)
 
-| 关键字 | 说明 |
-|--------|------|
-| `UNIQUE` | 记录键值必须唯一 |
-| `REF(lib/file)` | 引用另一文件的字段定义 |
-| `TEXT('description')` | 文件描述文本 |
-| `CCSID(number)` | 编码字符集标识 |
-| `FRCATR(*NONE)` | 不允许记录进入参考文件 |
-| `LIFO` / `FIFO` / `FCFO` | 溢出处理方式 |
-| `ALTSEQ(*NONE)` | 不使用替代排序序列 |
+**Applies to:** File level, Field level
 
-## 常用字段级关键字
-
-| 关键字 | 说明 |
-|--------|------|
-| `TEXT('description')` | 字段描述 |
-| `DFT(default)` | 默认值 |
-| `REFFLD(file/field)` | 引用字段定义 |
-| `COLHDG('heading')` | 列标题 |
-| `DATFMT(*USA/*ISO/*EUR/*JIS/*JOB)` | 日期格式 |
-| `DATSEP(*SLASH/*DASH/*PERIOD/*JOB)` | 日期分隔符 |
-| `CHECK(AB/ME/MF/M10...)` | 校验码检验 |
-| `COMP(*EQ/*NE/*GT...)` | 比较条件 |
-| `RANGE(low:high)` | 取值范围 |
-| `VALUES('a':'b':'c')` | 允许值列表 |
-| `ALWNULL` | 允许 NULL 值 |
-| `VARLEN` | 可变长度字段 |
-
-## 创建物理文件
-
-```bash
-# 从 DDS 源码创建物理文件
-CRTPF FILE(MYLIB/ORDER) SRCFILE(MYLIB/QDDSSRC) SRCMBR(ORDER)
-
-# 带记录长度
-CRTPF FILE(MYLIB/ORDER) SRCFILE(MYLIB/QDDSSRC) SIZE(*MAX4GB)
-
-# 查看结构
-DSPFFD FILE(MYLIB/ORDER)
-```
-
-## 字段引用（REF / REFFLD）
-
+**Syntax:**
 ```dds
-* 引用另一文件的字段定义
-              R ORDFMT                     REF(COMMON/FIELDS)
-              K ORDNBR                       覆盖键字段
-              ORDTYPE    5A   DFT('O')     覆盖默认值
+CCSID(value [field-display-length | *MIN | *LEN display-positions]
+      [*CONVERT | *NOCONVERT] [*NORMALIZE])
 ```
 
-## 与 RPG 的集成
+**Parameters:**
+- `value`: 1-5 digit CCSID number
+- `field-display-length`: Optional display length for UCS-2/UTF-16
+- `*CONVERT/*NOCONVERT`: Conversion control for printer files
+- `*NORMALIZE`: UTF-8/UTF-16 normalization
 
-物理文件创建后，RPG 可以直接用 `EXTNAME` 引用：
-
-```rpgle
-**FREE
-DCL-DS Order EXTNAME('ORDER') END-DS;
-// Order.ORDNBR、Order.CUSTID 等字段直接可用
+**Example:**
+```dds
+00010A                                      CCSID(285)
+00020A          R RECORD1
+00030A            FIELD1        75G         CCSID(13488)
+00040A            FIELD2       150A
+00050A            FIELD4        10A         CCSID(1208 *NORMALIZE)
 ```
 
-## 相关页面
+---
 
-- [[dds-logical-files]] — 逻辑文件（简单/多格式/Join）
-- [[dds-keywords]] — DDS 关键字速查
-- [[rpg-file-processing]] — RPG 文件处理
-- [[ibm-i-platform]] — IBM i 平台
+## CHECK (Check)
+
+**Applies to:** Field level
+
+**Description:** Validity checking for display file fields. Does not affect physical/logical files.
+
+**Syntax:**
+```dds
+CHECK(edit-check-code [. . .])
+```
+
+**Valid Codes:**
+- `AB` - Allow blank
+- `ME` - Mandatory enter
+- `MF` - Mandatory fill
+- `M10` - Modulus 10 self-check
+- `M11` - Modulus 11 self-check
+- `VN` - Validate name
+- `VNE` - Validate name extended
+
+**Restrictions:** Not valid on floating-point (F), hexadecimal (H), date (L), time (T), or timestamp (Z) fields
+
+---
+
+## CHKMSGID (Check Message Identifier)
+
+**Applies to:** Field level
+
+**Syntax:**
+```dds
+CHKMSGID(message-id [library/]message-file [message-data-field])
+```
+
+**Restrictions:** Allowed only on fields with VALUES, RANGE, CMP, COMP, CHECK(M10), CHECK(M11), CHECK(VN), or CHECK(VNE)
+
+---
+
+## COLHDG (Column Heading)
+
+**Applies to:** Field level
+
+**Syntax:**
+```dds
+COLHDG('line-1' ['line-2' ['line-3']])
+```
+
+**Parameters:** Up to 3 lines of 20 characters each
+
+**Example:**
+```dds
+00150A            ORDDAT         5  0       COLHDG('Order' 'Date')
+00160A            NAME          20          COLHDG('Customer''s Name')
+00170A            CITY          20          COLHDG('Customer' 'City' 'Field')
+```
+
+---
+
+## DFT (Default)
+
+**Applies to:** Field level
+
+**Syntax:**
+```dds
+DFT('value' | numeric-value | X'hexadecimal-value' | *NULL)
+```
+
+**Parameters:**
+- Character constant, hexadecimal value, *NULL, or numeric value
+- Date fields: valid date in DATFMT format
+- Time fields: valid time in TIMFMT format
+- Timestamp: 'YYYY-MM-DD-HH.MM.SS.UUUUUU'
+
+**Example:**
+```dds
+00010A          R RECORD1
+00020A            CHARFLD1      20A         DFT('Sample field')
+00030A            CHARFLD2       5A         DFT(X'D985955185')
+00040A            HEXFLD1        3H         DFT('ABC')
+00050A            NUMFLD1        5S 0       DFT(99999)
+```
+
+---
+
+## DIGIT (Digit)
+
+**Applies to:** Key field level
+
+**Description:** Use only the digit portion (farthest right 4 bits) of each byte when sequencing key field.
+
+**Syntax:** No parameters
+
+**Parameters:** None
+
+**Restrictions:**
+- Valid only for character, hexadecimal, or zoned decimal fields
+- Cannot be used with ABSVAL, SIGNED, or ZONE keywords
+
+**Example:**
+```dds
+00040A          K ORDTYP                    DIGIT
+```
+
+---
+
+## EDTCDE (Edit Code)
+
+**Applies to:** Field level
+
+**Syntax:**
+```dds
+EDTCDE(edit-code [* | floating-currency-symbol])
+```
+
+**Restrictions:** Not valid on floating-point (F), hexadecimal (H), date (L), time (T), or timestamp (Z) fields
+
+**Example:**
+```dds
+     A            PRICE          5  2       EDTCDE(J)
+     A            SALES          7  2       EDTCDE(K $)
+     A            SALARY         8  2       EDTCDE(1 *)
+```
+
+---
+
+## EDTWRD (Edit Word)
+
+**Applies to:** Field level
+
+**Syntax:**
+```dds
+EDTWRD('edit-word')
+```
+
+**Restrictions:** Not valid on floating-point (F), hexadecimal (H), date (L), time (T), or timestamp (Z) fields
+
+**Example:**
+```dds
+     A            BALANCE        7  2       EDTWRD('$    0.  &CR')
+```
+
+---
+
+## FLTPCN (Floating-Point Precision)
+
+**Applies to:** Field level
+
+**Syntax:**
+```dds
+FLTPCN(*SINGLE | *DOUBLE)
+```
+
+**Parameters:**
+- `*SINGLE`: Single precision (up to 9 digits)
+- `*DOUBLE`: Double precision (up to 17 digits)
+
+**Example:**
+```dds
+00090A            FIELDA        17F 4       FLTPCN(*DOUBLE)
+```
+
+---
+
+## REF (Reference)
+
+**Applies to:** File level
+
+**Syntax:**
+```dds
+REF([library-name/]database-file-name [record-format-name])
+```
+
+**Example:**
+```dds
+00010A                                      REF(FILE1)
+00020A          R RECORD
+00030A            FLD1      R
+```
+
+---
+
+## REFFLD (Referenced Field)
+
+**Applies to:** Field level
+
+**Syntax:**
+```dds
+REFFLD([record-format-name/]referenced-field-name
+      [{*SRC | [library-name/]database-file-name}])
+```
+
+**Parameters:**
+- Referenced field name (required)
+- Optional record format name
+- Optional *SRC or library/file reference
+
+**Example:**
+```dds
+00010A          R FMAT1
+00020A            ITEM           5
+00030A            SUPDESC       20      R   REFFLD(SUPDESC SUPFILE)
+```
+
+---
+
+## REFSHIFT (Reference Shift)
+
+**Applies to:** Field level
+
+**Syntax:**
+```dds
+REFSHIFT(keyboard-shift)
+```
+
+**Valid Values:** A-Z, N, X, or blank
+
+**Example:**
+```dds
+00010A          R RECORD
+00020A            FIELDA         5          REFSHIFT(X)
+00030A            FIELDN         4P         REFSHIFT(N)
+```
+
+---
+
+## SIGNED (Signed)
+
+**Applies to:** Key field level
+
+**Description:** Consider sign of numeric values when sequencing (default behavior for zoned decimal).
+
+**Syntax:** No parameters
+
+**Parameters:** None
+
+**Restrictions:**
+- Not valid for character, date, time, timestamp, or hexadecimal fields
+- Cannot be used with ABSVAL, DIGIT, UNSIGNED, or ZONE
+
+**Example:**
+```dds
+00010A          R RECORD
+00020A            FLDA           7S 2
+00030A            FLDB
+00040A          K FLDA                      SIGNED
+```
+
+---
+
+## TRNTBL (Translation Table)
+
+**Applies to:** Field level
+
+**Syntax:**
+```dds
+TRNTBL([library-name/]translation-table-name)
+```
+
+**Restrictions:**
+- Field must be character type
+- Cannot be used with date, time, or timestamp fields
+- ICU tables not allowed
+
+**Example:**
+```dds
+00010A          R RECORD1                   PFILE(PF1)
+00020A            CHAR1              I      TRNTBL(LIB1/TBL1)
+00030A            CHAR2           A  I      TRNTBL(LIB2/TBL2)
+```
+
+---
+
+## UNSIGNED (Unsigned)
+
+**Applies to:** Key field level
+
+**Description:** Sequence numeric key field as unsigned binary data.
+
+**Syntax:** No parameters
+
+**Parameters:** None
+
+**Restrictions:** Cannot be used with ABSVAL, DIGIT, SIGNED, or ZONE
+
+---
+
+## VARLEN (Variable-Length Field)
+
+**Applies to:** Field level
+
+**Syntax:**
+```dds
+VARLEN[(allocated-length)]
+```
+
+**Parameters:**
+- Optional allocated length (1 to max field length)
+- Default: data stored in variable portion
+
+**Restrictions:**
+- Valid only for character and graphic fields
+- Maximum length 32,740 (32,739 if null allowed)
+- Cannot be used with date, time, or timestamp fields
+
+**Example:**
+```dds
+00010A          R RECORD1
+00020A            FIELD1       100A         VARLEN(30)
+00030A            FIELD2       200A         VARLEN
+```
+
+---
+
+## ZONE (Zone)
+
+**Applies to:** Key field level
+
+**Description:** Use only the zone portion (farthest left 4 bits) of each byte when sequencing key field.
+
+**Syntax:** No parameters
+
+**Parameters:** None
+
+**Restrictions:**
+- Valid only for character, hexadecimal, or zoned decimal fields
+- Cannot be used with ABSVAL, SIGNED, or DIGIT
+
+**Example:**
+```dds
+00010A          K CODE                      ZONE
+```
+
+---
+
+## Positional Entries Summary (Positions 1-44)
+
+| Position(s) | Description |
+|-------------|-------------|
+| 1-5 | Sequence number (optional, documentation only) |
+| 6 | Form type - must be A for DDS |
+| 7 | Comment - asterisk (*) identifies comment line |
+| 8-16 | Condition (leave blank for physical/logical files) |
+| 17 | Name type: R=Record, K=Key field, Blank=Field |
+| 18 | Reserved |
+| 19-28 | Name (record format, field, or key field name) |
+| 29 | Reference (R required for referenced fields) |
+| 30-34 | Field length |
+| 35 | Data type (P, S, A, H, L, T, Z, etc.) |
+| 36-37 | Decimal positions |
+| 38 | Usage (I=input-only, B=both, N=neither) |
+| 39-44 | Field location in record |
+| 45-80 | Keywords |
+
+---
+
+## Data Types
+
+| Code | Data Type |
+|------|-----------|
+| A | Character |
+| B | Binary |
+| F | Floating-point |
+| G | Graphic (DBCS) |
+| H | Hexadecimal |
+| L | Date |
+| P | Packed decimal |
+| S | Zoned decimal |
+| T | Time |
+| Z | Timestamp |
+
+---
+
+## Access Path Types
+
+### Arrival Sequence Access Path
+- No key fields specified
+- Records retrieved in physical order
+- Cannot specify select/omit unless DYNSLT keyword used
+
+### Keyed Sequence Access Path
+- One or more key fields specified
+- Records retrieved in key sequence
+- Select/omit fields allowed
+
+### Reference Access Path (REFACCPTH)
+- Copies access path from another file
+- Key, select, omit information copied
+
+---
+
+## Record Format Naming
+
+Physical files contain only one record format. The format name can be:
+1. Specified in DDS with field definitions
+2. Referenced from another file using FORMAT keyword
+
+**Example:**
+```dds
+00010A* PHYSICAL FILE CODING EXAMPLE
+00020A                                      REF(INVENCTL/INVENTORY)
+00030A                                      UNIQUE
+00040A          R ORDFMT                    TEXT('Format for Purchase Orders')
+00050A            ORDNBR         7  0       COLHDG('Order' 'Number')
+00060A            ITMNBR    R   10
+00070A            SUPNBR    R   +2          REFFLD(SUPID SUPLIB/SUPMST)
+00080A            QTYORD         5B
+00090A          K ORDNBR
+00100A          K ITMNBR                    ABSVAL
+```

@@ -1,351 +1,518 @@
 ---
-title: DDS for Printer Files
-type: concept
-domain: ibm-i
-tags: [dds, printer-file, printing, afp, report-design]
-summary: IBM i DDS 打印机文件规范，包括位置条目(1-44)、LINE/SPACE/SKIP定位、字体/颜色/条码打印
-related:
-  - dds-physical-files
-  - dds-logical-files
-  - dds-display-files
-  - dds-printer-file-keywords
-sources:
-  - title: DDS for Printer Files (IBM i 7.2)
-    url: https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakdpdf.pdf
-    filed: raw/papers/dds-printer-files.txt
-created: 2026-04-19
+title: DDS Printer File Keywords Reference
+description: Comprehensive reference for IBM i DDS (Data Description Specifications) printer file keywords
+source: /home/admin/wiki/raw/papers/dds-printer-files.txt
+lines: 8023
+keywords_count: ~80 unique keywords
 ---
 
-# DDS for Printer Files
+# DDS Printer File Keywords Reference
 
-打印机文件（Printer File）用于描述 IBM i 上报表/打印输出的格式。DDS 定义打印机的记录格式、字段布局、页面控制、字体和条码等。
+IBM i DDS for printer files defines how data is formatted and printed using the Create Printer File (CRTPRTF), Change Printer File (CHGPRTF), and Override Printer File (OVRPRTF) commands.
 
-## 文件结构
+## Table of Contents
 
-```
-     A* PRINTER FILE EXAMPLE
-     A          R TITLER                   记录格式 TITLER
-     A            FLD1      40        47  字段: 行1 列47
-     A  30        FLD2      40        47  条件: 指示符30关闭时打印
-     A          R AUTHORR
-     A                                    50'by'              常数字段
-     A            FIELD1    40        47  字段
-     A                                    50DFT('Task Force') 默认值
-     A          R PUBR                      SKIPB(58)          打印前跳到58行
-     A                                    47DATE  EDTCDE(Y)   日期+编辑码
-```
-
-**规格限制：**
-- 每个文件最多 1024 个记录格式
-- 每个记录格式最多 32,767 个字段
-- 记录格式总长度（含指示器）最多 32,767 字节
+1. [Record-Level Keywords](#record-level-keywords)
+2. [Field-Level Keywords](#field-level-keywords)
+3. [File-Level Keywords](#file-level-keywords)
+4. [AFP Resources](#afp-resources)
+5. [Barcode Types](#barcode-types)
+6. [Color Models](#color-models)
+7. [Date/Time Formats](#datetime-formats)
+8. [Edit Codes](#edit-codes)
+9. [Font Keywords](#font-keywords)
+10. [Page Layout (LINE/SPACE/SKIP)](#page-layout-linespaceskip)
+11. [DBCS Keywords](#dbcs-keywords)
 
 ---
 
-## 位置条目（Positions 1–44）
+## Record-Level Keywords
 
-### Position 17: 类型
+Record-level keywords apply to an entire record format.
 
-| 值 | 含义 |
-|----|------|
-| `R` | 记录格式名称行 |
-| _(空白)_ | 字段定义行 |
-
-### Position 35: 数据类型
-
-打印机文件数据类型比显示器文件少，没有键盘换档概念：
-
-| 值 | 类型 | 说明 |
-|----|------|------|
-| `A` | Character | 字符 |
-| `P` | Packed decimal | 压缩十进制 |
-| `S` | Zoned decimal | 带区十进制 |
-| `I` | Integer | 整数 |
-| `O` | Graphic (DBCS) | 图形字符 |
-| `G` | DBCS-Open | DBCS-Open 类型 |
-| `L` | Date | 日期 |
-| `T` | Time | 时间 |
-
-### Position 38: 用途（Usage）
-
-| 值 | 含义 |
-|----|------|
-| _(空白)_ | 输出（Output only） |
-| `O` | 输出（Output only） |
-
-> 打印机文件只能输出，没有 `I`（输入）或 `B`（双向）选项。
-
-### Positions 39–44: 行列位置
-
-```
-行号（1-255）或特殊值：*OVERLAY, *MAX, *LPI
-列号（1-378）
-```
-
-```dds
-     A            TITLE     40        1 10    行1 列10
-     A            EMPNO     5  0      *LPI     随当前行距打印
-     A            DETAIL    30        *OVERLAY 覆盖模式
-```
+| Keyword | Description |
+|---------|-------------|
+| `BOX` | Print a rectangle |
+| `DRAWER` | Specify paper drawer |
+| `DUPLEX` | Duplex printing control |
+| `ENDPAGE` | Eject current page after record prints |
+| `ENDPAGGRP` | End a logical grouping of pages |
+| `FLTPCN` | Specify floating-point precision (*SINGLE/*DOUBLE) |
+| `FONT` | Specify font ID for printing |
+| `FONTNAME` | Specify TrueType font name |
+| `FORCE` | Force new sheet for duplex printing |
+| `GDF` | Print a graphic data file |
+| `HIGHLIGHT` | Print field in bold |
+| `INVMMAP` | Call a new medium map |
+| `INVDTAMAP` | Specify data map for formatted page |
+| `LINE` | Print horizontal or vertical line |
+| `LPI` | Change lines per inch (4/6/8/9/12) |
+| `OUTBIN` | Specify output bin |
+| `OVERLAY` | Print an overlay |
+| `PAGRTT` | Specify page rotation (0/90/180/270) |
+| `PAGSEG` | Print a page segment |
+| `POSITION` | Define field location on page |
+| `PRTQLTY` | Vary print quality (*STD/*DRAFT/*NLQ/*FASTDRAFT) |
+| `SKIPA` | Skip to line after printing |
+| `SKIPB` | Skip to line before printing |
+| `SPACEA` | Space lines after printing |
+| `SPACEB` | Space lines before printing |
+| `STAPLE` | Perform stapling operation |
+| `STRPAGGRP` | Begin logical grouping of pages |
+| `ZFOLD` | Perform z-fold operation |
 
 ---
 
-## 页面布局控制
+## Field-Level Keywords
 
-### LINE — 画线
+Field-level keywords apply to specific fields within records.
 
-```dds
-     A              LINE(*RECTANGLE 5 10 20 60)   矩形: 行5 列10 到 行20 列60
-     A              LINE(*BOX 5 10 20 60)         边框矩形
-     A              LINE(*VERTICAL 5 10 20)       垂直线: 行5-20 列10
-     A              LINE(*HORIZONTAL 5 10 60)     水平线: 行5 列10-60
-```
-
-### SPACE / SPACEA / SPACEB — 行距
-
-```dds
-SPACEA(2)    本行之后空2行
-SPACEA(*LPI) 与LPI结合动态间距
-SPACEB(1)    本行之前空1行（跳页控制）
-SPACEA(0)    连续打印（无间距）
-```
-
-### SKIPA / SKIPB — 跳页控制
-
-```dds
-SKIPB(3)     打印前先跳到第3行（跳到下一页顶部）
-SKIPA(60)    本行打印后跳到第60行（控制换页位置）
-SKIPB(58)    本记录打印前跳到第58行
-SKIPA(66)    本记录最后一行后跳到第66行（标准66行报表）
-```
-
-典型报表布局（66行标准）：
-```dds
-     A          R HEADER              SKIPB(3)
-     A            REPORTNM  30        1
-     A            RUNDATE  L        40
-     A          R DETAIL               行距控制
-     A            ACCTNO   10        1
-     A            AMOUNT   12 2     15SPACEA(1)
-     A          R FOOTER               SKIPB(58)
-     A                                    66DATE  PAGNBR
-```
-
-### ENDPAGE — 强制换页
-
-```dds
-     A              ENDPAGE             强制换页
-```
-
-### FORCE — 强制记录输出
-
-```dds
-     A              FORCE               立即输出当前记录
-```
+| Keyword | Description |
+|---------|-------------|
+| `BARCODE` | Print barcode |
+| `CCSID` | Specify UTF-16/UCS-2 coded character set |
+| `CHRID` | Specify character identifier |
+| `CHRSIZ` | Expand character width/height (1 or 2) |
+| `COLOR` | Specify print color |
+| `CPI` | Specify characters per inch |
+| `CVTDTA` | Convert character data to hexadecimal |
+| `DATE` | Print current system date |
+| `DATFMT` | Specify date format |
+| `DATSEP` | Specify date separator |
+| `DFNCHR` | Define custom characters |
+| `DFT` | Specify constant/default value |
+| `DLTEDT` | Delete editing |
+| `DOCIDXTAG` | Specify document index tag |
+| `EDTCDE` | Specify edit code |
+| `EDTWRD` | Specify edit word |
+| `FLTFIXDEC` | Print floating-point as fixed decimal |
+| `FNTCHRSET` | Specify font character set |
+| `INDTXT` | Associate descriptive text with indicator |
+| `MSGCON` | Specify message constant |
+| `PAGNBR` | Print page number |
+| `POSITION` | Define field location |
+| `TIME` | Print current system time |
+| `TIMFMT` | Specify time format |
+| `TIMSEP` | Specify time separator |
+| `TRNSPY` | Prevent SCS control interpretation |
+| `TXTRTT` | Rotate text (0/90/180/270) |
+| `UNDERLINE` | Underline the field |
+| `UNISCRIPT` | Control Unicode text layout |
 
 ---
 
-## 字体与间距控制
+## File-Level Keywords
 
-### CPI / LPI — Characters Per Inch / Lines Per Inch
+File-level keywords apply to the entire printer file.
 
-```dds
-CPI(10)    10 字符/英寸（80列/行）
-CPI(15)    15 字符/英寸（132列/行）
-CPI(17.16) 压缩（198列/行）
-LPI(6)     6 行/英寸（标准）
-LPI(8)     8 行/英寸（紧密）
+| Keyword | Description |
+|---------|-------------|
+| `AFPRSC` | Specify AFP resource library |
+| `ALIAS` | Specify alternate record format name |
+| `BLKFOLD` | Allow text block folding |
+| `DTASTMCMD` | Data stream command |
+| `INDARA` | Remove indicators to separate area |
+| `REF` | Reference file for field descriptions |
+| `RELPOS` | Relative positioning for +n fields |
+
+---
+
+## Page Layout: LINE/SPACE/SKIP
+
+### LINE Keyword
+Prints horizontal or vertical lines.
+
+```
+LINE(position-down position-across line-length direction line-width [line-pad] [color])
 ```
 
-### FONT / FNTCHRSET — 字体
+**Parameters:**
+- `position-down/position-across`: 0 to 57.790 cm from margins
+- `line-length`: 0.001 to 57.790 cm
+- `direction`: `*HRZ` (horizontal) or `*VRT` (vertical)
+- `line-width`: Width with special values `*NARROW` (12/1440 in), `*MEDIUM` (24/1440 in), `*WIDE` (36/1440 in)
+- `line-pad`: `*TOP/*BOT` for horizontal, `*LEFT/*RIGHT` for vertical
 
-```dds
-FONT(011)            字体011（Courier）
-FONT(505)            字体505（OCR）
-FNTCHRSET(37)        字形集
-CDEFNT('FINANCE')    代码字体名称
-FONTNAME('Courier New')  TrueType/OpenType字体
+### SKIPA/SKIPB (Skip After/Before)
+```
+SKIPA(skip-after-line-number)   | 1-255
+SKIPB(skip-before-line-number)   | 1-255
 ```
 
-### CHRSIZ — 字符大小
-
-```dds
-CHRSIZ(12 12)         宽12 高12 (1/10" 单位)
-CHRSIZ(14 *AUTO)      高14 自动宽度
+### SPACEA/SPACEB (Space After/Before)
+```
+SPACEA(space-after-value)   | 0-255
+SPACEB(space-before-value)  | 0-255
 ```
 
-### PAGRTT — 页面旋转
-
-```dds
-PAGRTT(*AUTO)    自动旋转（纵向/横向）
-PAGRTT(*LANDSCAPE)
-PAGRTT(*PORTRAIT)
+**Processing Order:**
+```
+SKIPB → SPACEB → [STAPLE/OUTBIN/ZFOLD] → SPACEA → SKIPA
 ```
 
 ---
 
-## 条码打印（BARCODE）
+## Font Keywords
 
-> IBM i 7.2 新增：QR Code、Code 93、GS1 Databar、USPS Intelligent Mail
-
-```dds
-     A            BCFIELD    20A        1 10BARCODE(*CODE39 3 *HRI)
-     A            BCFIELD    20A        1 10BARCODE(*QR 1 *QRCDF)
-     A            BCFIELD    20A        1 10BARCODE(*PDF417 2 0.01)
+### FONT
+```
+FONT(font-identifier [(*POINTSIZE height-value [width-value])])
 ```
 
-**支持的条码类型：**
+- Numeric font ID (up to 10 digits) or graphic font name
+- `*VECTOR` for vector fonts on 4234 IPDS printer
+- Point size: 0.1 to 999.9
 
-| 类型值 | 条码名称 |
-|--------|---------|
-| `*CODE39` | Code 3 of 9 |
-| `*CODE128` | Code 128 |
-| `*EAN13` | EAN-13 |
-| `*EAN8` | EAN-8 |
-| `*UPCE` | UPC-E |
-| `*PDF417` | PDF417（二维） |
-| `*QR` | QR Code（二维） |
-| `*DATAMTX` | Data Matrix（二维） |
-| `*MAXICODE` | Maxicode（二维） |
-| `*GS1-128` | GS1-128 (UCC/EAN-128) |
-| `*ITF14` | ITF-14 |
-| `*USPOST` | USPS Intelligent Mail |
-| `*ROYMAIL` | Royal Mail |
-
----
-
-## 颜色与属性
-
-### COLOR — 颜色
-
-```dds
-COLOR(*BLACK)   黑（默认）
-COLOR(*BLUE)    蓝
-COLOR(*RED)     红
-COLOR(*GREEN)   绿
-COLOR(*YELLOW)  黄
-COLOR(*WHITE)   白
-COLOR(*PINK)    粉
-COLOR(*TURQ)    青
+### FONTNAME
+```
+FONTNAME('font-name' [(*POINTSIZE h [w])] [(*ROTATION deg)] 
+         [(*CODEPAGE [lib/]code-page)] [(*IGCCODEPAGE [lib/]igc-code-page)])
 ```
 
-### HIGHLIGHT — 高亮
+- TrueType/OpenType font name up to 125 characters
+- Valid for DEVTYPE(*AFPDS)
 
-```dds
-HIGHLIGHT(*NO)    普通（默认）
-HIGHLIGHT(*YES)   高亮（粗体）
+### FNTCHRSET
+```
+FNTCHRSET([lib/]font-character-set [lib/]code-page 
+           [(*POINTSIZE height-value width-value)])
 ```
 
-### UNDERLINE — 下划线
+- Font character set (8 chars) + code page (8 chars)
+- IBM-supplied: C0* font character sets, T1* code pages
+- Valid for DEVTYPE(*AFPDS)
 
-```dds
-     A            NAME      30        1 10UNDERLINE
+### CDEFNT (Coded Font Name)
+```
+CDEFNT([lib/]coded-font-name [(*POINTSIZE h w)])
 ```
 
 ---
 
-## AFP / Overlay / Page Segment
+## AFP Resources
 
-### OVERLAY — 叠加
+### AFPRSC (AFP Resource)
+```
+AFPRSC(library-name)
+```
+Specifies library containing AFP resources.
 
-```dds
-     A              OVERLAY(MYFORM)      叠加预定义的AFP表单
-     A              OVERLAY(MYLOGO *LAST) 在最后叠加
+### OVERLAY
+```
+OVERLAY([lib/]overlay-name position-down position-across [(*ROTATION deg)])
+```
+- Max 10 overlays per page
+- Valid for DEVTYPE(*AFPDS)
+
+### PAGSEG (Page Segment)
+```
+PAGSEG([lib/]page-segment-name position-down position-across 
+        [(*SIZE height width)] [(*ROTATION deg)])
+```
+- Max 10 page segments per page
+- Valid for DEVTYPE(*AFPDS)
+
+### GDF (Graphic Data File)
+```
+GDF(lib/file member position-down position-across depth width rotation)
+```
+Prints IBM Graphic Object Content Architecture (GOCA) charts.
+
+---
+
+## Barcode Types
+
+### BARCODE Keyword
+```
+BARCODE(barcode-type height [check-digit] [print-position] 
+        [HRG-spacing] [*COLOR color] [*CDTSA] [*CNTDTY])
 ```
 
-### PAGSEG — Page Segment
+### Supported Barcode Types
 
-```dds
-     A              PAGSEG(MYSEG 5 40)   页面段: 行5 列40
+| Type | Description | Valid Heights |
+|------|-------------|---------------|
+| `*CODE128` | Code 128 | 2-99 |
+| `*CODE128A` | Code 128 Set A | 2-99 |
+| `*CODE128B` | Code 128 Set B | 2-99 |
+| `*CODE128C` | Code 128 Set C | 2-99 |
+| `*CODE39` | Code 39 | 2-99 |
+| `*CODE93` | Code 93 | 2-99 |
+| `*EAN13` | EAN-13 | 5-99 |
+| `*EAN8` | EAN-8 | 5-99 |
+| `*PDF417` | PDF417 (2D) | 2-99 |
+| `*QRCODE` | QR Code (2D) | 2-99 |
+| `*DATAMTX` | Data Matrix (2D) | 2-99 |
+| `*MAXICODE` | Maxicode (2D) | 2-99 |
+| `*UPCE` | UPC-E | 5-99 |
+| `*US4S` | US Planet Code | 5-99 |
+| `*US5S` | US Postnet | 5-99 |
+| `*NW7` | Codabar/NW7 | 2-99 |
+| `*3OF9` | Code 3 of 9 | 2-99 |
+
+### 2D Barcode Parameters
+
+**PDF417:**
+```
+BARCODE(*PDF417 height [rows [columns]] [*CDV] [*CDTA])
+```
+- Rows: 3-90 (default: auto)
+- Columns: 1-30 (default: auto)
+
+**QR Code:**
+```
+BARCODE(*QRCODE height [model [error-level [mode]]])
+```
+- Model: *AUTO, *M1, *M2
+- Error level: *L(7%), *M(15%), *Q(25%), *H(30%)
+
+**Data Matrix:**
+```
+BARCODE(*DATAMTX height [format [aspect-ratio]])
 ```
 
-### AFPRSC — AFP Resource
-
-```dds
-     A              AFPRSC('/qFonts/myfont')  AFP资源
+**Maxicode:**
+```
+BARCODE(*MAXICODE height [mode [class [country [postal-code [message-id]]]]])
 ```
 
 ---
 
-## 页码、日期、纸张控制
+## Color Models
 
-### PAGNBR — 页码
-
-```dds
-     A              PAGNBR               自动页码（3位）
-     A            PGNBR     4  0      1 70PAGNBR  自定义字段页码
+### COLOR Keyword
+```
+COLOR([*COLOR color-name] | [*RGB r g b] | [*CMYK c m y k] | 
+       [*CIELAB l c1 c2] | [*HIGHLIGHT h])
 ```
 
-### DATE / TIME
+### COLOR Parameters
 
-```dds
-     A                                    40DATE              当前日期
-     A                                    40DATE EDTCDE(Y)   格式化日期
-     A                                    40TIME              当前时间
-     A            RUNDT    L            40DATFMT(*YMD)       YMD格式
-```
-
-### DRAWER — 纸张抽屉
-
-```dds
-DRAWER(1)     抽屉1
-DRAWER(*AUTO) 自动选择
-```
-
-### OUTBIN — 输出纸槽
-
-```dds
-OUTBIN(*MIRROR)   镜像打印
-OUTBIN(1)         纸槽1
-```
-
-### DUPLEX — 双面打印
-
-```dds
-DUPLEX(*NO)        单面
-DUPLEX(*YES)       双面长边翻转
-DUPLEX(*TUMBLE)    双面短边翻转
-```
-
-### PRTQLTY — 打印质量
-
-```dDS
-PRTQLTY(*DRAFT)    草稿质量
-PRTQLTY(*NLQ)      Near Letter Quality
-PRTQLTY(*LETTER)   书信质量
-PRTQLTY(*IMAGE)    图像质量
-```
-
-### STAPLE — 装订
-
-```dds
-STAPLE(*COUNTER)   顶部左边装订
-STAPLE(*STAPLE)    自动装订
-```
+| Model | Syntax | Values |
+|-------|--------|--------|
+| Named | `(*COLOR color-name)` | `*BLACK`, `*BLUE`, `*GREEN`, `*PINK`, `*RED`, `*YELLOW`, `*CYAN`, `*WHITE`, `*DEFAULT` |
+| RGB | `(*RGB red green blue)` | 0-255 each |
+| CMYK | `(*CMYK cyan magenta yellow black)` | 0-100 each |
+| CIELAB | `(*CIELAB l c1 c2)` | L: 0-100, C1/C2: -128 to 127 |
+| Highlight | `(*HIGHLIGHT h coverage)` | h: 1-5, coverage: 0-100 |
 
 ---
 
-## 与显示器文件的区别
+## Date/Time Formats
 
-| 特性 | 打印机文件 | 显示器文件 |
-|------|----------|-----------|
-| 方向 | 输出单向 | 输入/输出双向 |
-| Position 35 | 无键盘换档 | 数据类型+键盘换档 |
-| Position 38 | 只有 O（输出） | I/O/B/H |
-| 页面控制 | SKIP/LINE/SPACE | 显示屏尺寸 |
-| 子文件 | 无 | SFL 系统 |
-| 帮助系统 | 无 | 完整 HELP 体系 |
-| 菜单栏 | 无 | MNUBAR 系统 |
-| 窗口 | 无 | WINDOW 系统 |
-| 主要关键字 | BARCODE/OVERLAY/COLOR | DSPATR/SFL/HELP |
+### DATFMT (Date Format)
+```
+DATFMT(*JOB | *MDY | *DMY | *YMD | *JUL | *ISO | *USA | *EUR | *JIS)
+```
+
+| Format | Example Output |
+|--------|----------------|
+| `*JOB` | Job default |
+| `*MDY` | 12/31/99 |
+| `*DMY` | 31/12/99 |
+| `*YMD` | 99/12/31 |
+| `*JUL` | 99/365 |
+| `*ISO` | 1999-12-31 |
+| `*USA` | 12/31/1999 |
+| `*EUR` | 31.12.1999 |
+| `*JIS` | 1999-12-31 |
+
+### DATSEP (Date Separator)
+```
+DATSEP(*JOB | 'separator-char')
+```
+- Default separators: `/` (-), `.` (*ISO/*EUR/*JIS), `,` (*USA)
+
+### TIMFMT (Time Format)
+```
+TIMFMT(*HMS | *ISO | *USA | *EUR | *JIS)
+```
+
+| Format | Example Output |
+|--------|----------------|
+| `*HMS` | 14:00:00 |
+| `*ISO` | 14.00.00 |
+| `*USA` | 02:00 PM |
+| `*EUR` | 14.00.00 |
+| `*JIS` | 14:00:00 |
+
+### TIMSEP (Time Separator)
+```
+TIMSEP(*JOB | 'separator-char')
+```
+- Valid: `:`, `.`, `,`, blank
 
 ---
 
-## 编译
+## Edit Codes
 
-```bash
-CRTPRTF FILE(MYLIB/MYPRTF) SRCFILE(MYLIB/DDSFILE) +
-   PAGESIZE(66 80) LPI(6) CPI(10)
+### EDTCDE (Edit Code)
+```
+EDTCDE(edit-code)
 ```
 
-> **注意**：此手册版本为 IBM i 7.2（与 7.5 兼容）。
+| Code | Description | Example |
+|------|-------------|---------|
+| `1` | Suppress leading zeros, show decimal | `12.34` |
+| `2` | Commas, flush right, zero fill | `1,234.00` |
+| `3` | Asterisk fill, float dollar | `***1234.56` |
+| `4` | Slash date format | `12/31/99` |
+| `A` | Suppress if zero, credit indicated | `12.34CR` |
+| `B` | Suppress if zero | `12.34` |
+| `C` | Commas, flush right, zero fill, credit | `1,234.56-` |
+| `D` | Float minus sign, zero suppressed | `12.34-` |
+| `J` | Suppress if zero, leading $ | `$12.34` |
+| `K` | Suppress if zero | `12.34` |
+| `L` | Float $ left | `$  12.34` |
+| `M` | Float $ left, credit | `$  12.34CR` |
+| `N` | Float $ left | `$12.34` |
+| `O` | Float $ left, credit | `$12.34CR` |
+| `Q` | Float $ right | `12.34  $` |
+| `W` | Suppress leading zeros | `12.34` |
+| `Y` | YMD date edit | `99/12/31` |
+| `Z` | Suppress all, asterisks | `****`**` |
+
+### EDTWRD (Edit Word)
+```
+EDTWRD('edit-word')
+```
+
+**Special Characters:**
+- `&` = Suppress and blank
+- `_` = Force blank
+- `-` = Float minus sign
+- `+` = Float plus sign
+- `$` = Float dollar sign
+- `,` = Comma
+- `.` = Period
+- `0-9` = Fixed digit
+
+---
+
+## DBCS Keywords
+
+### CCSID (Coded Character Set Identifier)
+```
+CCSID(UTF16-CCSID [&field] | *REFC [*CONVERT | *NOCONVERT] [alt-field-len])
+```
+
+- Valid CCSIDs: 1200 (UTF-16), 13488 (UCS-2)
+- Use `*NOCONVERT` for Unicode printing with TrueType fonts
+
+### DFNLIN (Define Line)
+```
+DFNLIN(*HRZ | *VRT start-line start-position length)
+```
+- Horizontal: draws at bottom of character spaces
+- Vertical: draws on right edge of character spaces
+
+### IGCALTTYP (Alternative Data Type)
+- Changes alphanumeric fields to DBCS (type O) when IGCDTA(*YES)
+
+### IGCANKCNV (Alphanumeric-to-DBCS Conversion)
+- Converts alphanumeric to DBCS characters (Japanese)
+- Adds shift-control characters (0E/0F)
+
+### IGCCDEFNT (DBCS Coded Font)
+```
+IGCCDEFNT([lib/]coded-font [(*POINTSIZE h w)])
+```
+- IBM-supplied: X0* coded fonts
+
+### IGCCHRRTT (DBCS Character Rotation)
+- Rotates DBCS characters 90 degrees counterclockwise
+- For 5553 printers and IPDS AFP(*YES) printers
+
+---
+
+## DDS Syntax Quick Reference
+
+### DDS Coding Form Positions
+
+| Positions | Content |
+|-----------|---------|
+| 1 | Option indicator |
+| 2-5 | Record name |
+| 6 | Record type (R) |
+| 7-18 | Reserved |
+| 19-28 | Field name |
+| 29 | Reference (R) |
+| 30-34 | Field length |
+| 35 | Data type |
+| 36-37 | Decimal positions |
+| 38 | Reserved |
+| 39-41 | Line number |
+| 42-44 | Position |
+| 45-80 | Keywords |
+
+### Data Types
+
+| Type | Description |
+|------|-------------|
+| `A` | Alphanumeric |
+| `S` | Zoned decimal |
+| `P` | Packed decimal |
+| `F` | Floating-point |
+| `O` | DBCS-open |
+| `G` | DBCS-graphic |
+| `T` | Time |
+| `L` | Date |
+
+### DEVTYPE Options
+
+| Type | Description |
+|------|-------------|
+| `*SCS` | SNA Character Stream |
+| `*IPDS` | Intelligent Printer Data Stream |
+| `*AFPDS` | Advanced Function Printing Data Stream |
+| `*LINE` | Line data |
+| `*AFPDSLINE` | AFP line data |
+
+---
+
+## Common Keyword Restrictions
+
+### Cannot combine with POSITION:
+- SPACEA, SPACEB, SKIPA, SKIPB
+- BOX, LINE, OVERLAY, PAGSEG, GDF, ENDPAGE
+
+### Cannot combine with CPI/LPI/DFNCHR:
+- BLKFOLD, PRTQLTY
+
+### Valid for DEVTYPE(*AFPDS) only:
+- AFPRSC, ENDPAGE, ENDPAGGRP, FNTCHRSET, FONTNAME, FORCE
+- GDF, INVMMAP, INVDTAMAP, LINE, OUTBIN, OVERLAY
+- PAGSEG, POSITION, PAGRTT, RELPOS, STAPLE, STRPAGGRP
+- TXTRTT, UNISCRIPT, ZFOLD
+
+---
+
+## Examples
+
+### Basic Printer File
+```
+     A          R RECORD1
+     A            FLD1           5A    16 01
+     A            FLD2           7S 2       DATFMT(*ISO)
+     A  01                                  HIGHLIGHT
+```
+
+### Barcode Example
+```
+     A            BARCD         13A    10  5BARCODE(*CODE128 10)
+     A                                      *COLOR(*BLUE)
+```
+
+### Overlay Example
+```
+     A          R HEADER
+     A                                      OVERLAY(MYLIB/HEADER 0 0)
+     A            TITLE         30A    10  1
+```
+
+### Page Segment with Position
+```
+     A          R LOGO
+     A                                      PAGSEG(MYLIB/LOGO 0.0 3.0)
+     A            TITLE         30A    5  1
+```
