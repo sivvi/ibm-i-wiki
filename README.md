@@ -1,53 +1,65 @@
-# IBM i RPG Reference
+# IBM i RPG Wiki
 
-IBM i RPG IV 文档，基于 IBM i 7.5 RPG Reference Manual (SC09-2509-09)。
+An [Obsidian](https://obsidian.md)-compatible knowledge base for IBM i RPG programming. Covers RPG IV, ILE, DDS, IBM i APIs, and the IBM i platform.
 
-## 文档结构
+## Architecture
+
+The wiki uses a three-layer architecture:
 
 ```
-concepts/
-├── rpg-iv-basics.md          # RPG IV 基础概念
-├── rpg-iv-bifs.md            # 内置函数 (BIF) — 95 个
-├── rpg-iv-data-types.md      # 数据类型
-├── rpg-free-format.md        # 自由格式语法
-├── rpg-control-specs.md      # 控制规范
-├── rpg-definition-specs.md   # 定义规范
-├── rpg-file-processing.md    # 文件处理
-├── rpg-error-handling.md     # 错误处理
-├── rpg-commitment-control.md  #  Commitment Control
-├── rpg-debugging.md          # 调试
-├── rpg-binding-strategies.md # 绑定策略
-├── rpg-java-interop.md       # Java 互操作
-├── dds-*.md                   # DDS 文件定义文档
-├── ibm-i-*.md                 # IBM i API 相关
-└── rpg-opcode-*.md           # 操作码文档 — 120+ 个
+ibm-i-wiki/
+├── CLAUDE.md          ← Layer 3: Schema & constraints
+├── SKILL.md           ← Layer 3: Development skills
+├── README.md
+├── index.md           ← Layer 2: Map of Content (start here)
+├── concepts/          ← Layer 2: Wiki pages (LLM-generated)
+├── templates/         ← Layer 2: Note templates
+└── raw/               ← Layer 1: Immutable raw sources
+    └── papers/        ← Original IBM documentation
 ```
 
-## 操作码 (Opcode) 文档
+### Layer 1 — Raw Sources (`raw/`)
 
-覆盖 IBM i RPG Reference v7.5 中的所有操作码，源文件为 `raw/papers/rpg-reference-7.5.txt`。
+Immutable original IBM documentation (PDFs and extracted text). These are the source of truth. The LLM reads them but never modifies them.
 
-### 文件命名
+### Layer 2 — Wiki (`concepts/`, `index.md`, `templates/`)
 
-- 大驼峰形式：`rpg-opcode-DO.md`、`rpg-opcode-CAT.md`
-- 部分 opcode 带后缀：`rpg-opcode-ANDxx.md`、`rpg-opcode-CABxx.md`
+LLM-generated Markdown files — concept pages, entity pages, comparisons, and reference sheets. The LLM owns this layer: it creates, updates, cross-references, and maintains consistency.
 
-### 已知问题
+### Layer 3 — Schema (`CLAUDE.md`, `SKILL.md`)
 
-- `rpg-reference-7.5.txt` 中的 opcode 索引按字母排序时存在跳位（同一字母开头的 opcode 遗漏部分条目），已通过全文扫描补充缺失部分。
-- 部分 opcode 存在子格式（P/H/F 版本），如 MOVE (P)、MOVE (H)，当前解析策略取主词条完整内容，子格式合并在内。
-- Z-ADD、Z-SUB、XML-SAX 在 opcode 索引中未单独列出，但其正文部分有完整文档，已补充。
+Constraint files that tell the LLM how the wiki is structured, what conventions to follow, and what workflows to use when ingesting sources, answering questions, or maintaining pages.
 
-### 覆盖率
+## Quick Start
 
-| 类别 | 数量 | 状态 |
-|------|------|------|
-| Opcode (索引) | 120 | ✅ 完整 |
-| Opcode (额外) | 3 (Z-ADD/Z-SUB/XML-SAX) | ✅ 完整 |
-| BIF | 95 | ✅ 完整 |
+1. Open this folder as an [Obsidian](https://obsidian.md) vault.
+2. Start at `index.md` — the Map of Content.
+3. Use `[[wikilinks]]` to navigate between pages.
+4. Graph view shows the full knowledge graph.
 
-## 来源
+## Conventions
 
-- **RPG Reference**: `raw/papers/rpg-reference-7.5.txt` (SC09-2509-09, 595 pages)
-- **BIF 参考**: `raw/papers/rpg-iv-bifs.md`
-- **其他**: IBM i 7.5 Knowledge Center 及相关技术规范
+- **File names:** lowercase-hyphenated (`rpg-iv-basics.md`)
+- **Links:** `[[wikilinks]]` (no directory path)
+- **Frontmatter:** YAML with `title`, `created`, `updated`, `type`, `tags`, `sources`
+- **Tags:** Flat taxonomy (see CLAUDE.md for full list)
+
+## Contents
+
+| Area | Pages | Description |
+|------|-------|-------------|
+| RPG IV | 70+ | Opcodes, BIFs, data types, free format, subprocedures |
+| DDS | 8 | Physical/logical/display/printer files, keywords |
+| IBM i Platform | 4 | Platform overview, APIs, User Space, ILE |
+| Comparisons | 1 | Version comparisons (7.5 vs earlier) |
+
+## Sources
+
+All content is derived from IBM i 7.5 official documentation:
+
+- [ILE RPG Reference](https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/sc092508.pdf) (SC09-2509-09)
+- [ILE RPG Programmer's Guide](https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/sc092507.pdf) (SC09-2507-12)
+- [DDS for Physical and Logical Files](https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakbpdf.pdf)
+- [DDS for Display Files](https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakcpdf.pdf)
+- [DDS for Printer Files](https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakdpdf.pdf)
+- [IBM i API Overview](https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/apipdf.pdf)
